@@ -95,6 +95,7 @@ DWORD  GetFileProc(int nCurrentPos, SOCKET client)
 		char *data = new char[CHUNK_SIZE];
 
 
+
 		for (int i = nCurrentPos; i<nChunkCount; i++)
 		{
 

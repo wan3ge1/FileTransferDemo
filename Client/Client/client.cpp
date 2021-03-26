@@ -9,6 +9,8 @@ using namespace std;
 
 char FilePath[MAX_PATH];
 
+
+
 int main()
 {
 	cout << "\t\tClient-[RESUME BROKEN TRANSFER]" << "\t  author: ColdWind\n\n" << "Please enter the path to save the file eg: C:\\Save.RAR \n\n" << "Path:  ";
@@ -40,7 +42,7 @@ int main()
 
 	UINT OpenFlags;
 
-	CFile PosFile;
+	/*CFile PosFile;
 	if (PosFile.Open("D:\\PosFile", CFile::modeRead | CFile::typeBinary))
 	{
 		PosFile.Read((char*)&nCurrentPos, sizeof(nCurrentPos));
@@ -54,19 +56,36 @@ int main()
 	{
 		send(client, (char*)&nCurrentPos, sizeof(nCurrentPos), 0);
 		OpenFlags = CFile::modeWrite | CFile::typeBinary | CFile::modeCreate;
+	}*/
+
+	CFile file;
+	DWORD dwAttrib = GetFileAttributes(FilePath);
+	int ret = 0;
+	if (INVALID_FILE_ATTRIBUTES != dwAttrib && 0 == (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		ret = file.Open(FilePath, CFile::modeWrite | CFile::typeBinary);
+		int FileLen = file.GetLength();
+		nCurrentPos = FileLen / CHUNK_SIZE + 1;
+		cout << "The File Pos is " << nCurrentPos << "\n";
+		send(client, (char*)&nCurrentPos, sizeof(nCurrentPos), 0);
+	}
+	else
+	{
+		ret = file.Open(FilePath, CFile::modeWrite | CFile::typeBinary | CFile::modeCreate);
+		send(client, (char*)&nCurrentPos, sizeof(nCurrentPos), 0);
 	}
 
 	if (recv(client, (char*)&FileLen, sizeof(FileLen), 0) != 0)
 	{
 		int		nChunkCount;
-		CFile	file;
+		/*CFile	file;*/
 		nChunkCount = FileLen / CHUNK_SIZE;
 		if (nChunkCount == 0 || FileLen%nChunkCount != 0)
 		{
 			nChunkCount++;
 		}
 
-		if (file.Open(FilePath, OpenFlags))
+		if (ret)
 		{
 			file.Seek(nCurrentPos*CHUNK_SIZE, CFile::begin);
 
@@ -103,22 +122,22 @@ int main()
 				// file.Write(date, CHUNK_SIZE);
 				file.Write(date, idx);
 
-				CFile	PosFile;
+				/*CFile	PosFile;
 				int seekpos = i + 1;
 				if (PosFile.Open("D:\\PosFile", CFile::modeWrite | CFile::typeBinary | CFile::modeCreate));
 				{
 					PosFile.Write((char*)&seekpos, sizeof(seekpos));
 					PosFile.Close();
-				}
+				}*/
 			}
 			file.Close();
 			delete[] date;
 		}
-		if (DeleteFile("d:\\PosFile") != 0)
+		/*if (DeleteFile("d:\\PosFile") != 0)
 		{
 			cout << "File Transfer Complete" << endl;
 			getchar();
-		}
+		}*/
 	}
 
 	return 0;
